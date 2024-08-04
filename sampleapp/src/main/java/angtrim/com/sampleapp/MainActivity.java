@@ -5,7 +5,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-
 import angtrim.com.fivestarslibrary.FiveStarsDialog;
 import angtrim.com.fivestarslibrary.NegativeReviewListener;
 import angtrim.com.fivestarslibrary.ReviewListener;
@@ -29,6 +28,7 @@ public class MainActivity extends AppCompatActivity implements NegativeReviewLis
                 .setInAppReviewMode(true)
                 .setAfterNDaysMode(true)
                 .showAfter(0);
+
     }
 
     @Override

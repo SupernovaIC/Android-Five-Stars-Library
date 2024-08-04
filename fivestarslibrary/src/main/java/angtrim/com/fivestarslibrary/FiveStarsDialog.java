@@ -8,7 +8,6 @@ import android.content.SharedPreferences;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.LayerDrawable;
 import android.net.Uri;
-
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 
@@ -18,18 +17,19 @@ import android.view.View;
 import android.widget.RatingBar;
 import android.widget.TextView;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.play.core.review.ReviewInfo;
 import com.google.android.play.core.review.ReviewManager;
 import com.google.android.play.core.review.ReviewManagerFactory;
-import com.google.android.play.core.tasks.OnCompleteListener;
-import com.google.android.play.core.tasks.OnFailureListener;
-import com.google.android.play.core.tasks.Task;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
+
 
 /**
  * Created by angtrim on 12/09/15.
@@ -45,6 +45,7 @@ public class FiveStarsDialog implements DialogInterface.OnClickListener {
     private boolean isForceMode = false;
     private final SharedPreferences sharedPrefs;
     private String defaultTitle;
+
     private String defaultText;
     private String supportEmail;
     private TextView contentTextView;
@@ -208,6 +209,7 @@ public class FiveStarsDialog implements DialogInterface.OnClickListener {
         }
     }
 
+
     @Override
     public void onClick(DialogInterface dialogInterface, int i) {
         switch (i) {
@@ -244,6 +246,7 @@ public class FiveStarsDialog implements DialogInterface.OnClickListener {
     public FiveStarsDialog setTitle(String title) {
         this.title = title;
         return this;
+
     }
 
     public FiveStarsDialog setSupportEmail(String supportEmail) {
@@ -359,32 +362,21 @@ public class FiveStarsDialog implements DialogInterface.OnClickListener {
     private void launchInAppReview() {
         final ReviewManager manager = ReviewManagerFactory.create(context);
         Task<ReviewInfo> request = manager.requestReviewFlow();
-        request.addOnCompleteListener(new OnCompleteListener<ReviewInfo>() {
-            @Override
-            public void onComplete(@NonNull Task<ReviewInfo> task) {
-                if (task.isSuccessful()) {
-                    if (context instanceof Activity) {
-                        Task<Void> flow = manager.launchReviewFlow(((Activity) context), task.getResult());
-                        flow.addOnCompleteListener(new OnCompleteListener<Void>() {
-                            @Override
-                            public void onComplete(@NonNull Task<Void> task) {
-                                if (inAppReviewListener != null) {
-                                    inAppReviewListener.onInAppReview();
-                                }
-                            }
-                        });
-                        flow.addOnFailureListener(new OnFailureListener() {
-                            @Override
-                            public void onFailure(Exception e) {
-                                openMarket();
-                            }
-                        });
-                    } else {
-                        openMarket();
-                    }
+        request.addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                if (context instanceof Activity) {
+                    Task<Void> flow = manager.launchReviewFlow(((Activity) context), task.getResult());
+                    flow.addOnCompleteListener(task1 -> {
+                        if (inAppReviewListener != null) {
+                            inAppReviewListener.onInAppReview();
+                        }
+                    });
+                    flow.addOnFailureListener(e -> openMarket());
                 } else {
                     openMarket();
                 }
+            } else {
+                openMarket();
             }
         });
     }
